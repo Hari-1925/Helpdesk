@@ -37,7 +37,19 @@ const ticketSchema = new mongoose.Schema({
     },
     // We will add attachment support later in Module 4
     attachments: [{
-        type: String, // URLs to files
+        path: String,
+        originalName: String,
+        filename: String,
+        mimeType: String,
+        size: Number,
+        uploader: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        },
+        uploadedAt: {
+            type: Date,
+            default: Date.now
+        }
     }],
 }, {
     timestamps: true,
