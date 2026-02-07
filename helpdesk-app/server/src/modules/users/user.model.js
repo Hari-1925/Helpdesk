@@ -32,13 +32,34 @@ const userSchema = new mongoose.Schema({
     },
     department: {
         type: String,
-        enum: ['Global', 'IT', 'HR', 'Sales', 'Support', 'General'],
+        enum: ['Global', 'IT', 'HR', 'Sales', 'Support', 'General', 'Finance'],
         default: 'General',
     },
     isActive: {
         type: Boolean,
         default: true,
     },
+    isVerified: {
+        type: Boolean,
+        default: false,
+    },
+    verificationToken: String,
+    verificationTokenExpire: Date,
+    // Two Factor Authentication
+    twoFactorEnabled: {
+        type: Boolean,
+        default: false,
+    },
+    twoFactorSecret: {
+        type: String,
+        select: false, // Don't return by default
+    },
+    twoFactorExpires: {
+        type: Date,
+    },
+    // Password Reset
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
 }, {
     timestamps: true,
 });

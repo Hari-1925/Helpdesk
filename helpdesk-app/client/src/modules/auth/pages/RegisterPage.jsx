@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { register, reset } from '../authSlice';
 import { toast } from 'react-toastify';
+import { User, Mail, Lock, ArrowRight, Hexagon, Shield } from 'lucide-react';
 
 const RegisterPage = () => {
     const [formData, setFormData] = useState({
@@ -21,16 +22,14 @@ const RegisterPage = () => {
     );
 
     useEffect(() => {
-        if (isError) {
+        if (isSuccess) {
+            navigate('/verify-email', { state: { email } });
+        } else if (isError) {
             toast.error(message);
         }
 
-        if (isSuccess || user) {
-            navigate('/');
-        }
-
         dispatch(reset());
-    }, [user, isError, isSuccess, message, navigate, dispatch]);
+    }, [user, isError, isSuccess, message, navigate, dispatch, email]);
 
     const onChange = (e) => {
         setFormData((prevState) => ({
@@ -51,53 +50,85 @@ const RegisterPage = () => {
         dispatch(register(userData));
     };
 
-    if (isLoading) {
-        return <div className="text-center mt-20">Loading...</div>;
-    }
-
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-100">
-            <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-                <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">Create an Account</h2>
-                <form className="space-y-4" onSubmit={onSubmit}>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={name}
-                            onChange={onChange}
-                            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
-                            placeholder="John Doe"
-                        />
+        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+            {/* Animated Background Elements */}
+            <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-[120px] animate-pulse"></div>
+            <div className="absolute bottom-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-secondary/20 blur-[120px] animate-pulse delay-1000"></div>
+
+            <div className="glass-panel w-full max-w-md p-10 rounded-3xl relative z-10 shadow-2xl animate-in fade-in zoom-in duration-500 border-t border-white/10">
+                <div className="flex justify-center mb-8">
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30 rotate-3 transition-transform hover:rotate-6">
+                        <Hexagon className="text-white" size={32} />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={email}
-                            onChange={onChange}
-                            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
-                            placeholder="you@example.com"
-                        />
+                </div>
+
+                <div className="text-center mb-8">
+                    <h2 className="text-3xl font-bold text-white mb-2 tracking-tight">Registration</h2>
+                    <p className="text-text-muted">Create a new account</p>
+                </div>
+
+                <form className="space-y-5" onSubmit={onSubmit}>
+                    <div className="group">
+                        <label className="block text-xs font-bold text-primary uppercase tracking-widest mb-2 group-focus-within:text-white transition-colors">Full Name</label>
+                        <div className="relative">
+                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={20} />
+                            <input
+                                type="text"
+                                name="name"
+                                value={name}
+                                onChange={onChange}
+                                className="input-field pl-12 py-3 bg-black/20 border-white/10 focus:bg-black/40"
+                                placeholder="Agent X"
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={password}
-                            onChange={onChange}
-                            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
-                            placeholder="••••••••"
-                        />
+                    <div className="group">
+                        <label className="block text-xs font-bold text-primary uppercase tracking-widest mb-2 group-focus-within:text-white transition-colors">Email Address</label>
+                        <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={20} />
+                            <input
+                                type="email"
+                                name="email"
+                                value={email}
+                                onChange={onChange}
+                                className="input-field pl-12 py-3 bg-black/20 border-white/10 focus:bg-black/40"
+                                placeholder="agent@nexus.com"
+                            />
+                        </div>
                     </div>
-                    <button type="submit" className="w-full bg-primary text-white py-2 rounded-md hover:bg-blue-700 transition">Register</button>
+                    <div className="group">
+                        <label className="block text-xs font-bold text-primary uppercase tracking-widest mb-2 group-focus-within:text-white transition-colors">Password</label>
+                        <div className="relative">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={20} />
+                            <input
+                                type="password"
+                                name="password"
+                                value={password}
+                                onChange={onChange}
+                                className="input-field pl-12 py-3 bg-black/20 border-white/10 focus:bg-black/40"
+                                placeholder="••••••••"
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="btn btn-primary w-full py-4 text-sm font-bold tracking-widest uppercase shadow-lg shadow-primary/25 hover:shadow-primary/50 mt-6"
+                    >
+                        <span className="flex items-center justify-center space-x-2">
+                            <span>{isLoading ? 'Processing...' : 'Register'}</span>
+                            {!isLoading && <ArrowRight size={18} />}
+                        </span>
+                    </button>
                 </form>
-                <p className="mt-4 text-center text-sm text-slate-600">
-                    Already have an account? <Link to="/login" className="text-primary hover:underline">Login</Link>
-                </p>
+
+                <div className="mt-8 pt-6 border-t border-white/5 text-center">
+                    <p className="text-sm text-text-muted">
+                        Already have an account? <Link to="/login" className="font-bold text-white hover:text-primary transition-colors ml-1">Login</Link>
+                    </p>
+                </div>
             </div>
         </div>
     );

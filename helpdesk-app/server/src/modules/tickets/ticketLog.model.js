@@ -13,7 +13,7 @@ const ticketLogSchema = new mongoose.Schema({
     performedBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        // required: true // Can be null for system actions
     },
     oldValue: {
         type: Object

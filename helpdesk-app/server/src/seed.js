@@ -8,31 +8,45 @@ dotenv.config();
 const users = [
     {
         name: 'Super Admin',
-        email: 'admin@helpdesk.com',
+        email: 'superadmin@helpdesk.com',
         password: 'password123',
         role: 'super-admin',
-        department: 'Global'
+        department: 'Global',
+        isVerified: true,
+        twoFactorEnabled: false
+    },
+    {
+        name: 'Admin User',
+        email: 'admin@helpdesk.com',
+        password: 'password123',
+        role: 'admin',
+        department: 'IT',
+        isVerified: true,
+        twoFactorEnabled: false
     },
     {
         name: 'IT Manager',
         email: 'manager_it@helpdesk.com',
         password: 'password123',
         role: 'manager',
-        department: 'IT'
+        department: 'IT',
+        isVerified: true
     },
     {
         name: 'IT Agent',
         email: 'agent_it@helpdesk.com',
         password: 'password123',
         role: 'agent',
-        department: 'IT'
+        department: 'IT',
+        isVerified: true
     },
     {
         name: 'Regular User',
         email: 'user@helpdesk.com',
         password: 'password123',
         role: 'user',
-        department: 'General'
+        department: 'General',
+        isVerified: true
     }
 ];
 

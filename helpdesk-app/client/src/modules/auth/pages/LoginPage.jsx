@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { login, reset } from '../authSlice';
 import { toast } from 'react-toastify';
-import { Lock, Mail, ArrowRight } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Hexagon, ShieldCheck } from 'lucide-react';
 
 const LoginPage = () => {
     const [formData, setFormData] = useState({
@@ -16,7 +16,7 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const { user, isLoading, isError, isSuccess, message } = useSelector(
+    const { user, isLoading, isError, isSuccess, message, twoFactorRequired } = useSelector(
         (state) => state.auth
     );
 
@@ -25,12 +25,14 @@ const LoginPage = () => {
             toast.error(message);
         }
 
-        if (isSuccess || user) {
+        if (twoFactorRequired) {
+            navigate('/verify-2fa');
+        } else if (isSuccess || user) {
             navigate('/');
         }
 
         dispatch(reset());
-    }, [user, isError, isSuccess, message, navigate, dispatch]);
+    }, [user, isError, isSuccess, message, twoFactorRequired, navigate, dispatch]);
 
     const onChange = (e) => {
         setFormData((prevState) => ({
@@ -41,90 +43,119 @@ const LoginPage = () => {
 
     const onSubmit = (e) => {
         e.preventDefault();
-        const userData = { email, password };
+        const userData = { email, password, portal: 'user' };
         dispatch(login(userData));
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-            {/* Background decoration */}
-            <div className="absolute top-0 left-0 w-full h-1/2 bg-slate-900 z-0"></div>
-            <div className="absolute inset-0 z-0 opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+            {/* Animated Background Elements */}
+            <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary/20 blur-[120px] animate-pulse"></div>
+            <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-secondary/20 blur-[120px] animate-pulse delay-1000"></div>
 
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex overflow-hidden z-10 relative">
-
+            <div className="glass-panel w-full max-w-5xl flex overflow-hidden rounded-3xl relative z-10 shadow-2xl animate-in fade-in zoom-in duration-500">
                 {/* Left Side - Form */}
-                <div className="w-full md:w-1/2 p-8 md:p-12">
-                    <div className="flex items-center space-x-2 mb-8">
-                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-white">H</div>
-                        <span className="text-xl font-bold">HelpDesk</span>
+                <div className="w-full md:w-1/2 p-10 md:p-14 flex flex-col justify-center relative">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+
+                    <div className="flex items-center space-x-3 mb-10">
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-lg shadow-primary/30">
+                            <Hexagon className="text-white" size={24} fill="currentColor" fillOpacity={0.2} />
+                        </div>
+                        <span className="text-2xl font-bold text-white tracking-widest uppercase">Help<span className="text-primary">Desk</span></span>
                     </div>
 
-                    <h2 className="text-3xl font-bold text-slate-800 mb-2">Welcome Back</h2>
-                    <p className="text-slate-500 mb-8">Please enter your details to sign in.</p>
+                    <div className="mb-8">
+                        <h2 className="text-4xl font-bold text-white mb-3 tracking-tight">Welcome Back</h2>
+                        <p className="text-text-muted">Please enter your details to sign in.</p>
+                    </div>
 
-                    <form className="space-y-5" onSubmit={onSubmit}>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1">Email Address</label>
+                    <form className="space-y-6" onSubmit={onSubmit}>
+                        <div className="group">
+                            <label className="block text-xs font-bold text-primary uppercase tracking-widest mb-2 group-focus-within:text-white transition-colors">Email Address</label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={20} />
                                 <input
                                     type="email"
                                     name="email"
                                     value={email}
                                     onChange={onChange}
-                                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
-                                    placeholder="you@example.com"
+                                    className="input-field pl-12 py-3 bg-black/20 border-white/10 focus:bg-black/40 text-lg"
+                                    placeholder="user@helpdesk.com"
                                 />
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+                        <div className="group">
+                            <label className="block text-xs font-bold text-primary uppercase tracking-widest mb-2 group-focus-within:text-white transition-colors">Password</label>
                             <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={20} />
                                 <input
                                     type="password"
                                     name="password"
                                     value={password}
                                     onChange={onChange}
-                                    className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"
+                                    className="input-field pl-12 py-3 bg-black/20 border-white/10 focus:bg-black/40 text-lg"
                                     placeholder="••••••••"
                                 />
                             </div>
                         </div>
 
                         <div className="flex items-center justify-between text-sm">
-                            <label className="flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                                <span className="text-slate-600">Remember me</span>
+                            <label className="flex items-center space-x-2 cursor-pointer group">
+                                <input type="checkbox" className="rounded border-white/20 bg-white/5 text-primary focus:ring-primary/50 transition-all cursor-pointer" />
+                                <span className="text-text-muted group-hover:text-white transition-colors">Remember me</span>
                             </label>
-                            <a href="#" className="font-medium text-blue-600 hover:text-blue-500">Forgot password?</a>
+                            <Link to="/forgot-password" className="font-bold text-primary hover:text-white transition-colors tracking-wide">Forgot Password?</Link>
                         </div>
 
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-slate-900 text-white py-3 rounded-lg font-semibold hover:bg-slate-800 transition-all flex items-center justify-center space-x-2 group shadow-lg shadow-slate-900/20"
+                            className="btn btn-primary w-full py-4 text-sm font-bold tracking-widest uppercase shadow-lg shadow-primary/25 hover:shadow-primary/50"
                         >
-                            <span>{isLoading ? 'Signing in...' : 'Sign In'}</span>
-                            {!isLoading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
+                            <span className="flex items-center justify-center space-x-2">
+                                <span>{isLoading ? 'Signing In...' : ' Sign In'}</span>
+                                {!isLoading && <ArrowRight size={18} />}
+                            </span>
                         </button>
                     </form>
 
-                    <p className="mt-8 text-center text-sm text-slate-600">
-                        Don't have an account? <Link to="/register" className="font-bold text-blue-600 hover:text-blue-500">Create account</Link>
-                    </p>
-                </div>
-
-                {/* Right Side - Image */}
-                <div className="hidden md:block w-1/2 bg-cover bg-center relative" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1632&q=80')" }}>
-                    <div className="absolute inset-0 bg-blue-600/80 mix-blend-multiply"></div>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-12 text-center">
-                        <h3 className="text-3xl font-bold mb-4">Streamline Your Support</h3>
-                        <p className="text-blue-100 text-lg">Manage tickets, track performance, and delight your customers with our modern helpdesk solution.</p>
+                    <div className="mt-10 pt-6 border-t border-white/5 text-center">
+                        <p className="text-sm text-text-muted mb-4">
+                            Don't have an account? <Link to="/register" className="font-bold text-white hover:text-primary transition-colors ml-1">Create account</Link>
+                        </p>
+                        <Link to="/staff/login" className="inline-flex items-center text-xs font-mono text-text-muted hover:text-warning transition-colors border border-white/5 hover:border-warning/30 rounded px-3 py-1 bg-white/5">
+                            <ShieldCheck size={12} className="mr-2" />
+                            STAFF/ADMIN PORTAL
+                        </Link>
                     </div>
                 </div>
 
+                {/* Right Side - Visual */}
+                <div className="hidden md:flex w-1/2 bg-black/40 relative items-center justify-center p-12 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-secondary/20 z-0"></div>
+
+                    {/* Decorative Grid */}
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-20"></div>
+
+                    <div className="relative z-10 text-center space-y-6 max-w-md">
+                        <div className="relative inline-block">
+                            <div className="absolute inset-0 bg-primary blur-[40px] opacity-30 animate-pulse"></div>
+                            <Hexagon size={120} className="text-white relative z-10 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" strokeWidth={0.5} />
+                        </div>
+
+                        <div>
+                            <h3 className="text-3xl font-bold text-white mb-2 tracking-tight">Streamline Your Support</h3>
+                            <p className="text-white/60 font-medium">Manage tickets, track performance, and delight your customers with our modern helpdesk solution.</p>
+                        </div>
+
+                        <div className="flex justify-center space-x-2 mt-8">
+                            <div className="w-2 h-2 rounded-full bg-primary animate-bounce"></div>
+                            <div className="w-2 h-2 rounded-full bg-white animate-bounce delay-100"></div>
+                            <div className="w-2 h-2 rounded-full bg-secondary animate-bounce delay-200"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

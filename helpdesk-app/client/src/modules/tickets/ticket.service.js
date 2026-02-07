@@ -1,7 +1,36 @@
 import api from '../../services/api';
 
 const createTicket = async (ticketData) => {
-    const response = await api.post('/tickets', ticketData);
+    // If ticketData contains files, we need FormData
+    // Assuming ticketData has a 'files' property which is an array of File objects, 
+    // OR we convert everything to FormData if we detect it.
+    // Let's assume the caller passes a plain object, and if it has 'attachments' (FileList or array), we handle it.
+
+    let config = {};
+    let data = ticketData;
+
+    if (ticketData.attachments && ticketData.attachments.length > 0) {
+        const formData = new FormData();
+        // Append text fields
+        Object.keys(ticketData).forEach(key => {
+            if (key === 'attachments') {
+                // Append files
+                Array.from(ticketData.attachments).forEach(file => {
+                    formData.append('attachments', file);
+                });
+            } else {
+                formData.append(key, ticketData[key]);
+            }
+        });
+        data = formData;
+        config = {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        };
+    }
+
+    const response = await api.post('/tickets', data, config);
     return response.data.data;
 };
 
@@ -16,7 +45,29 @@ const getTicket = async (ticketId) => {
 };
 
 const updateTicket = async (ticketId, ticketData) => {
-    const response = await api.put(`/tickets/${ticketId}`, ticketData);
+    let config = {};
+    let data = ticketData;
+
+    if (ticketData.attachments && ticketData.attachments.length > 0) {
+        const formData = new FormData();
+        Object.keys(ticketData).forEach(key => {
+            if (key === 'attachments') {
+                Array.from(ticketData.attachments).forEach(file => {
+                    formData.append('attachments', file);
+                });
+            } else {
+                formData.append(key, ticketData[key]);
+            }
+        });
+        data = formData;
+        config = {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        };
+    }
+
+    const response = await api.put(`/tickets/${ticketId}`, data, config);
     return response.data.data;
 };
 

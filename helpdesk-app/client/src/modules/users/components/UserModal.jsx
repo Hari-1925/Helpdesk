@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, User, Mail, Lock, Shield, Briefcase } from 'lucide-react';
 
-const UserModal = ({ isOpen, onClose, onSave, user }) => {
+const UserModal = ({ isOpen, onClose, onSave, user, currentUser }) => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -17,8 +17,17 @@ const UserModal = ({ isOpen, onClose, onSave, user }) => {
                 role: user.role || 'user',
                 department: user.department || '',
             });
+        } else {
+            // Reset for create mode
+            setFormData({
+                name: '',
+                email: '',
+                password: '',
+                role: 'user',
+                department: '',
+            });
         }
-    }, [user]);
+    }, [user, isOpen]);
 
     if (!isOpen) return null;
 
@@ -32,83 +41,131 @@ const UserModal = ({ isOpen, onClose, onSave, user }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                    <h3 className="font-bold text-slate-800 text-lg">Edit User</h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-200">
+            <div className="glass-panel w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-white/10 relative animate-in zoom-in-95 duration-200">
+                {/* Decorative glow */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-[50px] rounded-full pointer-events-none"></div>
+
+                <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-white/5 relative z-10">
+                    <h3 className="font-bold text-white text-lg tracking-tight flex items-center">
+                        <User size={20} className="mr-2 text-primary" />
+                        {user ? 'Edit User Profile' : 'Initialize New User'}
+                    </h3>
+                    <button onClick={onClose} className="text-text-muted hover:text-white transition-colors p-1 hover:bg-white/10 rounded-full">
                         <X size={20} />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-8 space-y-5 relative z-10">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                            required
-                        />
+                        <label className="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Name</label>
+                        <div className="relative group">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={16} />
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                className="input-field pl-10 bg-black/40"
+                                placeholder="Full Name"
+                                required
+                            />
+                        </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
-                        <select
-                            name="role"
-                            value={formData.role}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                        >
-                            <option value="user">User</option>
-                            <option value="agent">Agent</option>
-                            <option value="manager">Manager</option>
-                            <option value="admin">Admin</option>
-                            <option value="super-admin">Super Admin</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
-                        <select
-                            name="department"
-                            value={formData.department}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                        >
-                            <option value="">None</option>
-                            <option value="IT">IT</option>
-                            <option value="HR">HR</option>
-                            <option value="Sales">Sales</option>
-                            <option value="Finance">Finance</option>
-                            <option value="Support">Support</option>
-                        </select>
+                        <label className="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Email</label>
+                        <div className="relative group">
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={16} />
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="input-field pl-10 bg-black/40"
+                                placeholder="email@example.com"
+                                required
+                            />
+                        </div>
                     </div>
 
-                    <div className="pt-4 flex justify-end space-x-3">
+                    {/* Password field only for new users */}
+                    {!user && (
+                        <div>
+                            <label className="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Password</label>
+                            <div className="relative group">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={16} />
+                                <input
+                                    type="password"
+                                    name="password"
+                                    value={formData.password || ''}
+                                    onChange={handleChange}
+                                    className="input-field pl-10 bg-black/40"
+                                    required
+                                    minLength={6}
+                                    placeholder="Min. 6 characters"
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Role</label>
+                            <div className="relative group">
+                                <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={16} />
+                                <select
+                                    name="role"
+                                    value={formData.role}
+                                    onChange={handleChange}
+                                    className="input-field pl-10 bg-black/40 appearance-none"
+                                >
+                                    <option value="user" className="bg-slate-900">User</option>
+                                    <option value="agent" className="bg-slate-900">Agent</option>
+                                    <option value="manager" className="bg-slate-900">Manager</option>
+                                    {/* RBAC: Admin cannot promote to Admin/Super Admin */}
+                                    {currentUser?.role !== 'admin' && (
+                                        <>
+                                            <option value="admin" className="bg-slate-900">Admin</option>
+                                            <option value="super-admin" className="bg-slate-900">Super Admin</option>
+                                        </>
+                                    )}
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-text-muted uppercase tracking-widest mb-2">Dept</label>
+                            <div className="relative group">
+                                <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary transition-colors" size={16} />
+                                <select
+                                    name="department"
+                                    value={formData.department}
+                                    onChange={handleChange}
+                                    className="input-field pl-10 bg-black/40 appearance-none"
+                                >
+                                    <option value="" className="bg-slate-900">None</option>
+                                    <option value="IT" className="bg-slate-900">IT</option>
+                                    <option value="HR" className="bg-slate-900">HR</option>
+                                    <option value="Sales" className="bg-slate-900">Sales</option>
+                                    <option value="Finance" className="bg-slate-900">Finance</option>
+                                    <option value="Support" className="bg-slate-900">Support</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-6 flex justify-end space-x-3 border-t border-white/5 mt-4">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition font-medium"
+                            className="px-6 py-2 text-text-muted hover:text-white hover:bg-white/5 rounded-lg transition-colors font-bold text-sm uppercase tracking-wider"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-lg shadow-blue-500/30"
+                            className="btn btn-primary"
                         >
-                            Save Changes
+                            {user ? 'Save Changes' : 'Create User'}
                         </button>
                     </div>
                 </form>

@@ -44,6 +44,32 @@ export const login = createAsyncThunk('auth/login', async (user, thunkAPI) => {
     }
 });
 
+// Login Verify 2FA
+export const loginVerify2FA = createAsyncThunk('auth/loginVerify2FA', async (data, thunkAPI) => {
+    try {
+        return await authService.loginVerify2FA(data);
+    } catch (error) {
+        const message =
+            (error.response && error.response.data && error.response.data.message) ||
+            error.message ||
+            error.toString();
+        return thunkAPI.rejectWithValue(message);
+    }
+});
+
+// Verify Email
+export const verifyEmail = createAsyncThunk('auth/verify-email', async (data, thunkAPI) => {
+    try {
+        return await authService.verifyEmail(data);
+    } catch (error) {
+        const message =
+            (error.response && error.response.data && error.response.data.message) ||
+            error.message ||
+            error.toString();
+        return thunkAPI.rejectWithValue(message);
+    }
+});
+
 export const logout = createAsyncThunk('auth/logout', async () => {
     await authService.logout();
 });
@@ -57,6 +83,8 @@ export const authSlice = createSlice({
             state.isSuccess = false;
             state.isError = false;
             state.message = '';
+            state.twoFactorRequired = false;
+            state.emailFor2FA = null;
         },
     },
     extraReducers: (builder) => {
@@ -67,8 +95,9 @@ export const authSlice = createSlice({
             .addCase(register.fulfilled, (state, action) => {
                 state.isLoading = false;
                 state.isSuccess = true;
-                state.user = action.payload.user;
-                state.token = action.payload.token;
+                state.message = action.payload.message; // Just a success message
+                state.user = null;
+                state.token = null;
             })
             .addCase(register.rejected, (state, action) => {
                 state.isLoading = false;
@@ -82,9 +111,19 @@ export const authSlice = createSlice({
             })
             .addCase(login.fulfilled, (state, action) => {
                 state.isLoading = false;
-                state.isSuccess = true;
-                state.user = action.payload.user;
-                state.token = action.payload.token;
+
+                // Check if 2FA is required
+                if (action.payload.data.twoFactorRequired) {
+                    state.twoFactorRequired = true;
+                    state.emailFor2FA = action.payload.data.email;
+                    state.message = action.payload.message;
+                } else {
+                    state.isSuccess = true;
+                    state.user = action.payload.data.user;
+                    state.token = action.payload.data.token;
+                    state.twoFactorRequired = false;
+                    state.emailFor2FA = null;
+                }
             })
             .addCase(login.rejected, (state, action) => {
                 state.isLoading = false;
@@ -93,9 +132,42 @@ export const authSlice = createSlice({
                 state.user = null;
                 state.token = null;
             })
+            .addCase(loginVerify2FA.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(loginVerify2FA.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.user = action.payload.data.user;
+                state.token = action.payload.data.token;
+                state.twoFactorRequired = false;
+                state.emailFor2FA = null;
+            })
+            .addCase(loginVerify2FA.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            .addCase(verifyEmail.pending, (state) => {
+                state.isLoading = true;
+            })
+            .addCase(verifyEmail.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.user = action.payload.data.user;
+                state.token = action.payload.data.token;
+                state.message = action.payload.message;
+            })
+            .addCase(verifyEmail.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
             .addCase(logout.fulfilled, (state) => {
                 state.user = null;
                 state.token = null;
+                state.twoFactorRequired = false;
+                state.emailFor2FA = null;
             });
     },
 });

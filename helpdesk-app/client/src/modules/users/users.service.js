@@ -8,6 +8,12 @@ const getUsers = async () => {
     return response.data.data;
 };
 
+// Create user (Admin only)
+const createUser = async (userData) => {
+    const response = await api.post(API_URL, userData);
+    return response.data.data;
+};
+
 // Update user (role, department)
 const updateUser = async (id, userData) => {
     const response = await api.put(`${API_URL}/${id}`, userData);
@@ -22,6 +28,7 @@ const deleteUser = async (id) => {
 
 const usersService = {
     getUsers,
+    createUser,
     updateUser,
     deleteUser
 };

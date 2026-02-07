@@ -49,6 +49,19 @@ export const deleteUser = createAsyncThunk(
     }
 );
 
+// Create user
+export const createUser = createAsyncThunk(
+    'users/create',
+    async (userData, thunkAPI) => {
+        try {
+            return await usersService.createUser(userData);
+        } catch (error) {
+            const message = (error.response && error.response.data && error.response.data.message) || error.message || error.toString();
+            return thunkAPI.rejectWithValue(message);
+        }
+    }
+);
+
 export const usersSlice = createSlice({
     name: 'users',
     initialState,
@@ -71,6 +84,16 @@ export const usersSlice = createSlice({
                 state.users = action.payload;
             })
             .addCase(getUsers.rejected, (state, action) => {
+                state.isLoading = false;
+                state.isError = true;
+                state.message = action.payload;
+            })
+            .addCase(createUser.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.isSuccess = true;
+                state.users.push(action.payload);
+            })
+            .addCase(createUser.rejected, (state, action) => {
                 state.isLoading = false;
                 state.isError = true;
                 state.message = action.payload;
