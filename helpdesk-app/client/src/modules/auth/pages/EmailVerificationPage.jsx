@@ -59,11 +59,11 @@ const EmailVerificationPage = () => {
     }, [email, isError, isSuccess, message, navigate, dispatch]);
 
     const handleChange = (index, value) => {
-        // Allow only numbers
-        if (isNaN(value)) return;
+        // Allow alphanumeric characters
+        if (!/^[a-zA-Z0-9]*$/.test(value)) return;
 
         const newOtp = [...otp];
-        newOtp[index] = value;
+        newOtp[index] = value.toUpperCase(); // Force uppercase for consistency with hex token
         setOtp(newOtp);
 
         // Auto-focus next input
@@ -82,10 +82,10 @@ const EmailVerificationPage = () => {
     const handlePaste = (e) => {
         e.preventDefault();
         const pastedData = e.clipboardData.getData('text').slice(0, 6).split('');
-        if (pastedData.every(char => !isNaN(char))) {
+        if (pastedData.every(char => /^[a-zA-Z0-9]$/.test(char))) {
             const newOtp = [...otp];
             pastedData.forEach((char, index) => {
-                if (index < 6) newOtp[index] = char;
+                if (index < 6) newOtp[index] = char.toUpperCase();
             });
             setOtp(newOtp);
             inputRefs.current[Math.min(pastedData.length, 5)].focus();
