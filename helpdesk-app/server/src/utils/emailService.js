@@ -11,7 +11,8 @@ if (process.env.EMAIL_SERVICE === 'gmail') {
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
-        }
+        },
+        family: 4 // Force IPv4 to prevent ENETUNREACH errors
     });
 } else {
     // For development/fallback, use Ethereal or just a dummy one that logs to console
