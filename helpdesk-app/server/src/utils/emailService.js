@@ -1,49 +1,79 @@
 import nodemailer from 'nodemailer';
+import dns from 'dns';
+import { promisify } from 'util';
 import { env } from '../config/env.js';
 
-// Create a transporter
-let transporter;
+const resolve4 = promisify(dns.resolve4);
 
-if (process.env.EMAIL_SERVICE === 'gmail') {
-    // configured for Gmail
-    transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465, // SSL
-        secure: true,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        },
-        family: 4, // Force IPv4 to prevent ENETUNREACH errors
-        connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 10000,
-        socketTimeout: 10000
-    });
+// Initialize transporter asynchronously to ensure IPv4 resolution
+const initTransporter = async () => {
+    if (process.env.EMAIL_SERVICE === 'gmail') {
+        try {
+            // Force IPv4 resolution for Gmail
+            const addresses = await resolve4('smtp.gmail.com');
+            const ip = addresses[0];
+            console.log(`[Email Service] Resolved smtp.gmail.com to IPv4: ${ip}`);
 
-    // Verify connection configuration
-    transporter.verify(function (error, success) {
-        if (error) {
-            console.error('[Email Service] Connection Error:', error);
-        } else {
-            console.log('[Email Service] Server is ready to take our messages');
+            const transporter = nodemailer.createTransport({
+                host: ip,
+                port: 465,
+                secure: true,
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                },
+                tls: {
+                    servername: 'smtp.gmail.com' // Necessary when using IP
+                },
+                connectionTimeout: 10000,
+                greetingTimeout: 10000,
+                socketTimeout: 10000
+            });
+
+            // Verify connection
+            try {
+                await transporter.verify();
+                console.log('[Email Service] Server is ready to take our messages');
+                return transporter;
+            } catch (error) {
+                console.error('[Email Service] Connection Error:', error);
+                // Return transporter anyway, maybe transient error
+                return transporter;
+            }
+
+        } catch (err) {
+            console.error('[Email Service] DNS Resolution failed, falling back to hostname:', err);
+            // Fallback
+            return nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                }
+            });
         }
-    });
-} else {
-    // For development/fallback, use Ethereal or just a dummy one that logs to console
-    transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        auth: {
-            user: 'ethereal.user@example.com', // Replace with real Ethereal creds if needed
-            pass: 'ethereal_pass'
-        }
-    });
-}
+    } else {
+        // Ethereal/Dev
+        return nodemailer.createTransport({
+            host: 'smtp.ethereal.email',
+            port: 587,
+            auth: {
+                user: 'ethereal.user@example.com',
+                pass: 'ethereal_pass'
+            }
+        });
+    }
+};
+
+// Singleton promise
+const transporterPromise = initTransporter();
 
 export const sendEmail = async ({ to, subject, html }) => {
     try {
         console.log(`[Email Service] Attempting to send email to: ${to}`);
         console.log(`[Email Service] Subject: ${subject}`);
+
+        const transporter = await transporterPromise;
 
         if (!transporter) {
             throw new Error("Transporter not initialized");
