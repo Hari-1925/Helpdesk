@@ -233,7 +233,7 @@ const TicketDetailsPage = () => {
                                         {ticket.attachments.map((file, index) => (
                                             <a
                                                 key={index}
-                                                href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/${file.path}`}
+                                                href={`${import.meta.env.VITE_API_BASE_URL.replace('/api/v1', '') || 'http://localhost:5000'}/${file.path}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="flex items-center p-3 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-colors group"
