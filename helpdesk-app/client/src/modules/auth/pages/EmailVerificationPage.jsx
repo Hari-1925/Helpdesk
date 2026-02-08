@@ -52,11 +52,14 @@ const EmailVerificationPage = () => {
             }, 2000);
             return () => clearTimeout(timer);
         }
+    }, [email, isError, isSuccess, message, navigate]);
 
+    // Cleanup on unmount only
+    useEffect(() => {
         return () => {
             dispatch(reset());
-        }
-    }, [email, isError, isSuccess, message, navigate, dispatch]);
+        };
+    }, [dispatch]);
 
     const handleChange = (index, value) => {
         // Allow alphanumeric characters

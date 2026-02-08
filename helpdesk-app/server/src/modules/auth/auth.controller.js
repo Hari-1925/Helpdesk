@@ -19,6 +19,7 @@ export const register = async (req, res, next) => {
 export const verifyEmail = async (req, res, next) => {
     try {
         const { email, token } = req.body;
+        console.log('Verify Email Request:', req.body);
         const user = await authService.verifyEmail(email, token);
 
         // Optionally log them in directly or ask to login

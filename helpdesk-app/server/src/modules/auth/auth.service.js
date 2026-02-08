@@ -29,6 +29,7 @@ export const register = async (userData) => {
     });
 
     // Send Verification Email
+    console.log(`User created: ${user.email} with token: ${verificationToken}`);
     const message = `Your verification code is: ${verificationToken}`;
     try {
         await sendEmail({
@@ -44,6 +45,17 @@ export const register = async (userData) => {
 };
 
 export const verifyEmail = async (email, token) => {
+    // 1. Check if user exists and is already verified
+    const userCheck = await User.findOne({ email });
+    if (!userCheck) {
+        throw new ApiError(404, 'User not found');
+    }
+
+    if (userCheck.isVerified) {
+        return userCheck; // Idempotent success
+    }
+
+    // 2. If not verified, check token and expiry
     const user = await User.findOne({
         email,
         verificationToken: token,
