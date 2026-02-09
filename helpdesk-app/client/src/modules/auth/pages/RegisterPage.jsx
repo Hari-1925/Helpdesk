@@ -23,7 +23,8 @@ const RegisterPage = () => {
 
     useEffect(() => {
         if (isSuccess) {
-            navigate('/verify-email', { state: { email } });
+            toast.success('Registration successful! Please login.');
+            navigate('/login');
         } else if (isError) {
             toast.error(message);
         }

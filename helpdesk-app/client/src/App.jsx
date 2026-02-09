@@ -48,7 +48,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:resetToken" element={<ResetPasswordPage />} />
         <Route path="/verify-2fa" element={<TwoFactorVerificationPage />} />
-        <Route path="/verify-email" element={<EmailVerificationPage />} />
+        {/* <Route path="/verify-email" element={<EmailVerificationPage />} /> */}
 
         {/* Global Layout (Public & Private) */}
         <Route path="/" element={<MainLayout />}>
