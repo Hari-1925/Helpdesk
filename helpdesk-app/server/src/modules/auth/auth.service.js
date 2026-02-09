@@ -23,25 +23,25 @@ export const register = async (userData) => {
         password,
         role: role || 'user',
         department,
-        isVerified: false,
-        verificationToken,
-        verificationTokenExpire,
+        isVerified: true, // Auto-verify since email sending is disabled
+        // verificationToken, // Token not needed
+        // verificationTokenExpire,
     });
 
-    // Send Verification Email
-    console.log(`User created: ${user.email} with token: ${verificationToken}`);
-    const message = `Your verification code is: ${verificationToken}`;
+    // Send Verification Email (MOCKED - Check Server Logs)
+    console.log(`User created: ${user.email} (Auto-Verified)`);
+    // We can still call sendEmail to log the "fake" email to console for debugging
     try {
         await sendEmail({
             to: user.email,
-            subject: 'Account Verification Token',
-            html: `<p>Your verification code is: <b>${verificationToken}</b></p>`,
+            subject: 'Account Verification (Auto-Verified)',
+            html: `<p>Your account has been auto-verified. No further action needed.</p>`,
         });
     } catch (err) {
         console.error(err);
     }
 
-    return { message: 'Verification email sent' };
+    return { message: 'User registered successfully. Account auto-verified.' };
 };
 
 export const verifyEmail = async (email, token) => {
