@@ -3,14 +3,23 @@ import { env } from '../config/env.js';
 
 // Initialize transporter
 const initTransporter = async () => {
-    if (process.env.EMAIL_SERVICE === 'gmail') {
+    if (process.env.EMAIL_SERVICE === 'gmail' || process.env.EMAIL_USER) {
         try {
+            console.log('[Email Service] Initializing with Gmail settings (IPv4 forced)...');
             const transporter = nodemailer.createTransport({
-                service: 'gmail',
+                host: 'smtp.gmail.com',
+                port: 587,
+                secure: false, // true for 465, false for other ports
                 auth: {
                     user: process.env.EMAIL_USER,
                     pass: process.env.EMAIL_PASS
-                }
+                },
+                tls: {
+                    rejectUnauthorized: false // Helps if there are certificate chain issues, but use with caution
+                },
+                family: 4, // Force IPv4
+                logger: true, // Log to console
+                debug: true // Include SMTP traffic in logs
             });
 
             // Verify connection
