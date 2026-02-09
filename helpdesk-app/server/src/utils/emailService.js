@@ -1,33 +1,16 @@
 import nodemailer from 'nodemailer';
-import dns from 'dns';
-import { promisify } from 'util';
 import { env } from '../config/env.js';
 
-const resolve4 = promisify(dns.resolve4);
-
-// Initialize transporter asynchronously to ensure IPv4 resolution
+// Initialize transporter
 const initTransporter = async () => {
     if (process.env.EMAIL_SERVICE === 'gmail') {
         try {
-            // Force IPv4 resolution for Gmail
-            const addresses = await resolve4('smtp.gmail.com');
-            const ip = addresses[0];
-            console.log(`[Email Service] Resolved smtp.gmail.com to IPv4: ${ip}`);
-
             const transporter = nodemailer.createTransport({
-                host: ip,
-                port: 465,
-                secure: true,
+                service: 'gmail',
                 auth: {
                     user: process.env.EMAIL_USER,
                     pass: process.env.EMAIL_PASS
-                },
-                tls: {
-                    servername: 'smtp.gmail.com' // Necessary when using IP
-                },
-                connectionTimeout: 10000,
-                greetingTimeout: 10000,
-                socketTimeout: 10000
+                }
             });
 
             // Verify connection
@@ -37,20 +20,13 @@ const initTransporter = async () => {
                 return transporter;
             } catch (error) {
                 console.error('[Email Service] Connection Error:', error);
-                // Return transporter anyway, maybe transient error
+                // Return transporter anyway, maybe transient error or config issue that will show up on send
                 return transporter;
             }
 
         } catch (err) {
-            console.error('[Email Service] DNS Resolution failed, falling back to hostname:', err);
-            // Fallback
-            return nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                }
-            });
+            console.error('[Email Service] Failed to create transporter:', err);
+            return null;
         }
     } else {
         // Ethereal/Dev
@@ -71,7 +47,6 @@ const transporterPromise = initTransporter();
 export const sendEmail = async ({ to, subject, html }) => {
     try {
         console.log(`[Email Service] Attempting to send email to: ${to}`);
-        console.log(`[Email Service] Subject: ${subject}`);
 
         const transporter = await transporterPromise;
 
@@ -79,10 +54,12 @@ export const sendEmail = async ({ to, subject, html }) => {
             throw new Error("Transporter not initialized");
         }
 
-        // Mock sending by default if no real credentials are set
-        if (!process.env.EMAIL_USER && !process.env.ETHEREAL_USER) {
+        // Mock sending by default if no real credentials are set and not in production
+        if (!process.env.EMAIL_USER && !process.env.ETHEREAL_USER && process.env.NODE_ENV !== 'production') {
             console.log('---------------------------------------------------');
             console.log('[MOCK EMAIL CONTENT]');
+            console.log(`To: ${to}`);
+            console.log(`Subject: ${subject}`);
             console.log(html);
             console.log('---------------------------------------------------');
             return { messageId: 'mock-id' };
